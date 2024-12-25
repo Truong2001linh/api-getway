@@ -1,0 +1,76 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: api-gateway
+  ## product Service Route
+  cloud:
+    gateway:
+      routes:
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path= /auth/**
+
+        - id: image-service
+          uri: lb://image-service
+          predicates:
+            - Path= /images/**
+          filters:
+            - name: AuthenticationFilter
+              args:
+                requiredRole: ADMIN,USER
+
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/user/**
+          filters:
+            - name: AuthenticationFilter
+              args:
+                requiredRole: ADMIN,USER
+
+
+        ## ADMIN_LOCATION-SERVICE
+        - id: ADMIN_location-service
+          uri: lb://location-service
+          predicates:
+            - Path= /location/**
+            - Method= POST,UPDATE
+          filters:
+            - name: AuthenticationFilter
+              args:
+                 requiredRole: ADMIN
+        ## USER_LOCATION-SERVICE
+        - id: USER_location-service
+          uri: lb://location-service
+          predicates:
+            - Path= /location/**
+            - Method= GET,DELETE
+          filters:
+            - name: AuthenticationFilter
+              args:
+                requiredRole: ADMIN,USER
+
+
+eureka:
+  instance:
+    instanceId: ${spring.application.name}:${random.value}
+    prefer-ip-address: true
+
+logging:
+  level:
+    org.springframework.cloud.gateway.route.RouteDefinitionLocator: INFO
+    org.springframework.cloud.gateway: TRACE
+    root: info
+
+application:
+  security:
+    jwt:
+      secret-key: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+
+
+
+
+
+
